@@ -1,0 +1,152 @@
+%{
+	#include<stdio.h>
+	#include"y.tab.h"
+	extern int yylval;
+	int line=1;
+	void count();
+%}
+
+%%
+
+"/*"[^*/]*"*/"			{count();}
+"//"[^\n]*				{count();}
+
+"\""[^"\""]*"\""		{count();printf("%s",yytext);}
+
+"#include<stdio.h>"                   {count(); return HDFILE;}
+"#include<stdlib.h>"                  {count(); return HDFILE;}
+"#include<error.h>"                   {count(); return HDFILE;}
+"#include<conio.h>"                   {count(); return HDFILE;}
+"#include<math.h>"                    {count(); return HDFILE;}
+"#include<string.h>"                  {count(); return HDFILE;}
+"#include<iostream>"                  {count(); return HDFILE;}
+"using namespace std;"                {count(); return NAMESPACE;}
+"#include"[ ][\"][a-z]+".h"[\"]       {count(); return USERFILE;}
+
+"class"				{count(); return CLASS;}
+"struct"			{count(); return STRUCT;}
+"union"				{count(); return UNION;}
+"cin"				{count(); return CIN;}
+"cout"				{count(); return COUT;}
+	
+"auto"				{count(); return AUTO;}
+"static"			{count(); return STATIC;}
+"volatile"			{count(); return VOLATILE;}
+"extern"			{count(); return EXTERN;}
+"register"			{count(); return REGISTER;}
+"const"				{count(); return CONST;}
+"friend"			{count(); return FRIEND;}
+"virtual"			{count(); return VIRTUAL;}
+"inline"			{count(); return INLINE;}
+"typedef"			{count(); return TYPEDEF;}
+
+"do"				{count(); return DO;}
+"while"				{count(); return WHILE;}
+"for"				{count(); return FOR;}
+"if"				{count(); return IF;}
+"else"				{count(); return ELSE;}
+
+"break"				{count(); return BREAK;}
+"switch"			{count(); return SWITCH;}
+"goto"				{count(); return GOTO;}
+"continue"			{count(); return CONTINUE;}
+"count(); return"			{count(); return RETURN;}
+"case"				{count(); return CASE;}
+"default"			{count(); return DEFAULT;}
+
+"int"				{count(); return INT;}
+"double"			{count(); return DOUBLE;}
+"long"				{count(); return LONG;}
+"signed"			{count(); return SIGNED;}
+"unsigned"			{count(); return UNSIGNED;}
+"float"				{count(); return FLOAT;}
+"short"				{count(); return SHORT;}
+"void"				{count(); return VOID;}
+
+"public"			{count(); return PUBLIC;}
+"private"			{count(); return PRIVATE;}
+"protected"			{count(); return PROTECTED;}
+
+"sizeof"			{count(); return SIZEOF;}
+"this"				{count(); return THIS;}
+
+">>="				{count(); return(RIGHT_ASSIGN); }
+"<<="				{count(); return(LEFT_ASSIGN); }
+"+="				{count(); return(ADD_ASSIGN); }
+"-="				{count(); return(SUB_ASSIGN); }
+"*="				{count(); return(MUL_ASSIGN); }
+"/="				{count(); return(DIV_ASSIGN); }
+"%="				{count(); return(MOD_ASSIGN); }
+"&="				{count(); return(AND_ASSIGN); }
+"^="				{count(); return(XOR_ASSIGN); }
+"|="				{count(); return(OR_ASSIGN); }
+	
+">>"				{count(); return(RIGHT_OP); }
+"<<"				{count(); return(LEFT_OP); }
+"++"				{count(); return(INC_OP); }
+"--"				{count(); return(DEC_OP); }
+"->"				{count(); return(PTR_OP); }
+"&&"				{count(); return(AND_OP); }
+"||"				{count(); return(OR_OP); }
+"<="				{count(); return(LE_OP); }
+">="				{count(); return(GE_OP); }
+"=="				{count(); return(EQ_OP); }
+"!="				{count(); return(NE_OP); }
+"::"				{count(); return SCOPE_OP;}
+
+[;]					{count(); return(';'); }
+("{"|"<%")			{count(); return('{'); }
+("}"|"%>")			{count(); return('}'); }
+","					{count(); return(','); }
+[:]					{count(); return(':'); }
+"="					{count(); return('='); }
+"("					{count(); return('('); }
+")"					{count(); return(')'); }
+("["|"<:")			{count(); return('['); }
+("]"|":>")			{count(); return(']'); }
+"."					{count(); return('.'); }
+"&"					{count(); return('&'); }
+"!"					{count(); return('!'); }
+"~"					{count(); return('~'); }
+"-"					{count(); return('-'); }
+"+"					{count(); return('+'); }
+"*"					{count(); return('*'); }
+"/"					{count(); return('/'); }
+"%"					{count(); return('%'); }
+"<"					{count(); return('<'); }
+">"					{count(); return('>'); }
+"^"					{count(); return('^'); }
+"|"					{count(); return('|'); }
+"?"					{count(); return('?'); }
+
+[_a-zA-Z][_a-zA-Z0-9]*		{count(); return IDENTIFIER;}
+[0-9]+						{count(); return DIGIT;}
+
+[ \t\v\f]			{count();}
+[\n]				{count(); line++;yylval=line;}
+.					{count(); return IDENTIFIER;}
+
+%%
+
+int column = 0;
+
+void count()
+{
+	int i;
+
+	for (i = 0; yytext[i] != '\0'; i++)
+		if (yytext[i] == '\n')
+			column = 0;
+		else if (yytext[i] == '\t')
+			column += 8 - (column % 8);
+		else
+			column++;
+
+	ECHO;
+}
+
+int yywrap()
+{
+	return 1;
+}
+
